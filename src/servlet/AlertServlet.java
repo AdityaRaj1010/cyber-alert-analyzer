@@ -67,11 +67,21 @@ public class AlertServlet extends HttpServlet {
                 + ".empty{color:#A1AEC4;font-style:italic;padding:30px;text-align:center;font-size:16px;}"
                 + "</style></head><body>");
         w.println("<header><h1>CYBER SHIELD :: Security Operations Center</h1>"
+                + "<nav style='display:flex;gap:18px'>"
+                + "<a href='alerts'  style='color:#22D3EE;text-decoration:none;font-weight:bold;font-size:16px'>Dashboard</a>"
+                + "<a href='simulate' style='color:#22D3EE;text-decoration:none;font-weight:bold;font-size:16px'>Simulator</a>"
+                + "</nav>"
                 + "<div class='who'>Logged in as <b style='color:#10B981'>"
                 + escape((String) s.getAttribute("user")) + "</b> ("
                 + escape((String) s.getAttribute("role")) + ")"
                 + " <a href='logout'>Logout</a></div></header>");
         w.println("<main>");
+        w.println("<div style='background:#141F36;border:1px solid #33466B;border-left:4px solid #22D3EE;"
+                + "padding:14px 18px;margin-bottom:20px;border-radius:6px;font-size:16px;'>"
+                + "Need to demo every alert type? Open the "
+                + "<a href='simulate' style='color:#22D3EE;font-weight:bold;text-decoration:none'>"
+                + "Simulator &rarr;</a> "
+                + "to trigger MALWARE, DDoS, file-access, network intrusion, exfiltration and more.</div>");
         w.println("<div class='filters'>"
                 + "<a href='alerts'>All</a>"
                 + "<a href='alerts?onlyCritical=true'>Critical only</a>"

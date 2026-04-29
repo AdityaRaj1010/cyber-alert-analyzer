@@ -232,10 +232,49 @@ If you also want to show the servlet/JSP side:
    via `AlertFormatter.formatHtml`.
 5. Click filter pills (Critical only / Malware / Network / DDoS).
 6. Type a wrong password to show the web side also raises an
-   `INVALID_LOGIN` alert, then go back to the desktop dashboard,
-   click **Reload**, and your professor will see the same alert
-   that came in from the browser appear in the desktop table —
-   proving both UIs share the same SQLite DB via JDBC.
+   `INVALID_LOGIN` alert.
+7. Click **Simulator** in the header (see Demo 9) to trigger every
+   other alert type from the browser.
+8. Then go back to the desktop dashboard, click **Reload**, and your
+   professor will see the same alerts that came in from the browser
+   appear in the desktop table — proving both UIs share the same
+   SQLite DB via JDBC.
+
+---
+
+## DEMO 9 — Web Simulator  (every alert type, in the browser)
+
+**Page:** click **Simulator** in the top nav (or visit `/simulate`).
+
+This is the web equivalent of the desktop Network Monitor + File Scan
++ Malware Scanner + AWT Live Monitor frames. Each card calls
+`AlertDAO.insert()` through JDBC and writes a row to the same SQLite
+table that the dashboard reads from.
+
+**Quick triggers (single alert per click):**
+1. Click **Trigger** under "Suspicious Login" → SUSPICIOUS_LOGIN row
+2. Click **Trigger** under "Malware Detected"  → MALWARE row
+3. Click **Trigger** under "Port Scan"          → NETWORK_INTRUSION row
+4. Click **Trigger** under "File Access Violation" → FILE_ACCESS row
+5. Click **Trigger** under "Privilege Escalation" → PRIVILEGE_ESCALATION
+6. Click **Trigger** under "Data Exfiltration"  → DATA_EXFILTRATION row
+7. Click **Trigger** under "DDoS Burst"         → DDOS row
+
+After each click a green flash bar appears with a **View alerts →**
+link. Click it to jump to the dashboard and confirm the new row.
+
+**Compound simulators (multiple alerts per click):**
+- **File Scanner** card – type a path like `C:\\update.exe` → MALWARE,
+  or `secret_token.txt` → FILE_ACCESS. Plain `notes.txt` → "clean".
+- **Network Monitor Burst** card – pick a count (e.g. 10) → that many
+  random DDoS / intrusion / exfiltration alerts inserted at once.
+- **Malware Scanner** card – pick Quick / Full / Rootkit → 3 / 5 / 7
+  random malware detections inserted.
+- **Random Alert Stream** card – one click → 8 mixed alerts spanning
+  every category (best for showing the dashboard's filters in action).
+
+This is the demo path you should use **on the deployed Render site**
+since the desktop frames don't run in a browser.
 
 ---
 
