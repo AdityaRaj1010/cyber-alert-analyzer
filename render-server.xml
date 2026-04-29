@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Minimal, Render-friendly Tomcat 9 server.xml.
+
+    Differences vs the stock server.xml:
+      * Shutdown port is disabled (port="-1") so Render's port detector
+        cannot land on it and start sending HTTP probes there.
+      * Only one HTTP Connector is declared, on __PORT__ which the
+        Dockerfile substitutes with the value of $PORT at container
+        start.
+      * address="0.0.0.0" forces bind to all interfaces - required
+        because Render probes the container from the gateway.
+      * AJP / HTTPS connectors are removed - Render terminates TLS
+        at the edge so the container only needs plain HTTP.
+-->
+<Server port="-1" shutdown="DISABLED">
+
+    <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+    <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+    <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+
+    <GlobalNamingResources>
+        <Resource name="UserDatabase" auth="Container"
+                  type="org.apache.catalina.UserDatabase"
+                  description="User database that can be updated and saved"
+                  factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+                  pathname="conf/tomcat-users.xml" />
+    </GlobalNamingResources>
+
+    <Service name="Catalina">
+
+        <Connector port="__PORT__"
+                   protocol="HTTP/1.1"
+                   address="0.0.0.0"
+                   connectionTimeout="20000"
+                   maxThreads="100"
+                   URIEncoding="UTF-8"
+                   relaxedQueryChars="[]|{}^&#x60;&quot;&lt;&gt;" />
+
+        <Engine name="Catalina" defaultHost="localhost">
+
+            <Realm className="org.apache.catalina.realm.LockOutRealm">
+                <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+                       resourceName="UserDatabase" />
+            </Realm>
+
+            <Host name="localhost" appBase="webapps"
+                  unpackWARs="true" autoDeploy="true">
+                <Valve className="org.apache.catalina.valves.AccessLogValve"
+                       directory="logs"
+                       prefix="localhost_access_log"
+                       suffix=".txt"
+                       pattern="%h %l %u %t &quot;%r&quot; %s %b" />
+            </Host>
+
+        </Engine>
+
+    </Service>
+
+</Server>
