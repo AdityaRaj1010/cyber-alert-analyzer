@@ -17,6 +17,7 @@ ui\LoginFrame$2.class
 ui\Theme$1.class
 ui\CriticalAlertsFrame.class
 ui\MalwareScanFrame.class
+servlet\SimulateAlertServlet.class
 ui\MalwareScanFrame$1.class
 ui\AlertMonitorFrame$TypeChange.class
 ui\LoginFrame$4.class
