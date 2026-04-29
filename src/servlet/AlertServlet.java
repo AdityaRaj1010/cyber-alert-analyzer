@@ -17,7 +17,9 @@ import java.util.List;
 
 /**
  * Renders an HTML dashboard of security alerts pulled from SQLite via
- * {@link AlertDAO}.
+ * {@link AlertDAO}.  Each row is clickable - opens a modal that shows
+ * the full StringBuffer-formatted detail (same as the desktop "View
+ * Details" button on the dashboard).
  */
 @WebServlet("/alerts")
 public class AlertServlet extends HttpServlet {
@@ -46,11 +48,17 @@ public class AlertServlet extends HttpServlet {
                 + "  background:#0B1424;color:#E6EDF7;margin:0;min-height:100vh;}"
                 + "header{background:linear-gradient(90deg,#0E2A47,#1B2944);"
                 + "  padding:22px 32px;display:flex;justify-content:space-between;align-items:center;"
-                + "  border-bottom:1px solid #33466B;}"
-                + "header h1{margin:0;font-size:26px;color:#22D3EE;letter-spacing:1.5px;}"
+                + "  border-bottom:1px solid #33466B;flex-wrap:wrap;gap:14px;}"
+                + "header h1{margin:0;font-size:24px;color:#22D3EE;letter-spacing:1.5px;}"
+                + "nav{display:flex;gap:18px;}"
+                + "nav a{color:#22D3EE;text-decoration:none;font-weight:bold;font-size:16px;}"
+                + "nav a:hover{color:#fff;}"
                 + "header .who{font-size:16px;color:#A1AEC4;}"
-                + "header a{color:#FFC4C4;text-decoration:none;font-weight:bold;margin-left:8px;}"
+                + "header .who a{color:#FFC4C4;text-decoration:none;font-weight:bold;margin-left:8px;}"
                 + "main{padding:24px 32px;}"
+                + ".cta{background:#141F36;border:1px solid #33466B;border-left:4px solid #22D3EE;"
+                + "  padding:14px 18px;margin-bottom:20px;border-radius:6px;font-size:16px;}"
+                + ".cta a{color:#22D3EE;font-weight:bold;text-decoration:none;}"
                 + ".filters{margin-bottom:18px;}"
                 + ".filters a{display:inline-block;background:#141F36;color:#22D3EE;"
                 + "  padding:9px 16px;border-radius:20px;margin:4px 6px 4px 0;text-decoration:none;"
@@ -59,29 +67,43 @@ public class AlertServlet extends HttpServlet {
                 + "table{width:100%;border-collapse:collapse;background:#141F36;border-radius:8px;overflow:hidden;}"
                 + "th,td{padding:12px 14px;text-align:left;font-size:15px;border-bottom:1px solid #33466B;}"
                 + "th{background:#1B2944;color:#22D3EE;font-size:16px;letter-spacing:.5px;text-transform:uppercase;}"
-                + "tr:hover td{background:#1B2944;}"
+                + "tbody tr{cursor:pointer;}"
+                + "tbody tr:hover td{background:#1B2944;}"
                 + ".sev-CRITICAL{color:#DC2626;font-weight:bold;}"
                 + ".sev-HIGH    {color:#EF4444;font-weight:bold;}"
                 + ".sev-MEDIUM  {color:#F59E0B;font-weight:bold;}"
                 + ".sev-LOW     {color:#10B981;font-weight:bold;}"
                 + ".empty{color:#A1AEC4;font-style:italic;padding:30px;text-align:center;font-size:16px;}"
+                // Modal
+                + ".modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);align-items:center;"
+                + "  justify-content:center;z-index:99;}"
+                + ".modal.open{display:flex;}"
+                + ".modal-card{width:min(680px,92%);background:#141F36;border:1px solid #DC2626;border-radius:10px;"
+                + "  box-shadow:0 12px 40px rgba(0,0,0,.7);}"
+                + ".modal-head{display:flex;align-items:center;padding:14px 18px;background:#1B2944;"
+                + "  border-radius:10px 10px 0 0;color:#FCA5A5;font-weight:bold;letter-spacing:1px;}"
+                + ".modal-head .spacer{flex:1;}"
+                + ".modal-body{padding:20px;color:#E6EDF7;font-family:Consolas,monospace;font-size:14px;"
+                + "  margin:0;white-space:pre;line-height:1.55;}"
+                + ".btn-ghost{background:transparent;border:1px solid #33466B;color:#A1AEC4;padding:5px 11px;"
+                + "  font-size:13px;border-radius:5px;cursor:pointer;font-weight:bold;}"
+                + ".btn-ghost:hover{color:#fff;border-color:#22D3EE;}"
                 + "</style></head><body>");
-        w.println("<header><h1>CYBER SHIELD :: Security Operations Center</h1>"
-                + "<nav style='display:flex;gap:18px'>"
-                + "<a href='alerts'  style='color:#22D3EE;text-decoration:none;font-weight:bold;font-size:16px'>Dashboard</a>"
-                + "<a href='simulate' style='color:#22D3EE;text-decoration:none;font-weight:bold;font-size:16px'>Simulator</a>"
+
+        w.println("<header><h1>CYBER SHIELD :: SOC Dashboard</h1>"
+                + "<nav>"
+                + "<a href='alerts'>Dashboard</a>"
+                + "<a href='simulate'>Simulator</a>"
                 + "</nav>"
                 + "<div class='who'>Logged in as <b style='color:#10B981'>"
                 + escape((String) s.getAttribute("user")) + "</b> ("
                 + escape((String) s.getAttribute("role")) + ")"
                 + " <a href='logout'>Logout</a></div></header>");
         w.println("<main>");
-        w.println("<div style='background:#141F36;border:1px solid #33466B;border-left:4px solid #22D3EE;"
-                + "padding:14px 18px;margin-bottom:20px;border-radius:6px;font-size:16px;'>"
-                + "Need to demo every alert type? Open the "
-                + "<a href='simulate' style='color:#22D3EE;font-weight:bold;text-decoration:none'>"
-                + "Simulator &rarr;</a> "
-                + "to trigger MALWARE, DDoS, file-access, network intrusion, exfiltration and more.</div>");
+        w.println("<div class='cta'>Need to demo every alert type? Open the "
+                + "<a href='simulate'>Simulator &rarr;</a> "
+                + "for full File Scanner / Network Monitor / Malware Scanner / Live Monitor controls."
+                + "  <span style='color:#A1AEC4;margin-left:14px'>Tip: click any row below for full details.</span></div>");
         w.println("<div class='filters'>"
                 + "<a href='alerts'>All</a>"
                 + "<a href='alerts?onlyCritical=true'>Critical only</a>"
@@ -94,7 +116,7 @@ public class AlertServlet extends HttpServlet {
                 + "<a href='alerts?type=PRIVILEGE_ESCALATION'>Privilege</a>"
                 + "</div>");
 
-        w.println("<table><thead><tr>"
+        w.println("<table id='alertsTable'><thead><tr>"
                 + "<th>ID</th><th>Time</th><th>Severity</th><th>Type</th>"
                 + "<th>Message</th><th>Source IP</th><th>User</th>"
                 + "</tr></thead><tbody>");
@@ -107,7 +129,16 @@ public class AlertServlet extends HttpServlet {
             else                            data = dao.findAll();
 
             for (SecurityAlert a : data) {
-                w.println(AlertFormatter.formatHtml(a));
+                String detail = AlertFormatter.formatDetail(a);
+                w.println("<tr data-detail=\"" + htmlAttr(detail) + "\">"
+                        + "<td>" + a.getAlertId() + "</td>"
+                        + "<td>" + (a.getCreatedAt() == null ? "" : a.getCreatedAt()) + "</td>"
+                        + "<td class='sev-" + a.getSeverity() + "'>" + a.getSeverity() + "</td>"
+                        + "<td>" + escape(a.getAlertType()) + "</td>"
+                        + "<td>" + escape(a.getMessage()) + "</td>"
+                        + "<td>" + escape(a.getSourceIp()) + "</td>"
+                        + "<td>" + escape(a.getUsername()) + "</td>"
+                        + "</tr>");
             }
             if (data.isEmpty())
                 w.println("<tr><td colspan='7' class='empty'>No alerts found.</td></tr>");
@@ -116,10 +147,35 @@ public class AlertServlet extends HttpServlet {
                     + escape(ex.getMessage()) + "</td></tr>");
         }
 
-        w.println("</tbody></table></main></body></html>");
+        w.println("</tbody></table></main>");
+
+        // Modal + click handler for row -> details
+        w.println("<div id='modal' class='modal'>"
+                + "<div class='modal-card'>"
+                + "<div class='modal-head'>SECURITY ALERT  ::  Detail<span class='spacer'></span>"
+                + "<button class='btn-ghost' id='modalClose'>Close</button></div>"
+                + "<pre id='modalBody' class='modal-body'></pre>"
+                + "</div></div>");
+
+        w.println("<script>(()=>{"
+                + "const m=document.getElementById('modal'),b=document.getElementById('modalBody');"
+                + "document.querySelectorAll('#alertsTable tbody tr').forEach(tr=>{"
+                + "  if(!tr.dataset.detail)return;"
+                + "  tr.addEventListener('click',()=>{b.textContent=tr.dataset.detail;m.classList.add('open');});"
+                + "});"
+                + "document.getElementById('modalClose').onclick=()=>m.classList.remove('open');"
+                + "m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});"
+                + "})();</script>");
+
+        w.println("</body></html>");
     }
 
     private static String escape(String s) {
-        return s == null ? "" : s.replace("<","&lt;").replace(">","&gt;");
+        return s == null ? "" : s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;");
+    }
+    private static String htmlAttr(String s) {
+        if (s == null) return "";
+        return s.replace("&","&amp;").replace("\"","&quot;")
+                .replace("<","&lt;").replace(">","&gt;").replace("\n","&#10;");
     }
 }

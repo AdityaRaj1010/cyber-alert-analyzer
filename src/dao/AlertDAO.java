@@ -68,6 +68,20 @@ public class AlertDAO {
         }
     }
 
+    /** Look up a single alert by id. Returns null if not found. */
+    public SecurityAlert findById(int id) throws SQLException {
+        String sql = "SELECT alert_id, alert_type, severity, message, source_ip, username, created_at "
+                   + "FROM alerts WHERE alert_id=?";
+        try (Connection c = DBConnection.get();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                List<SecurityAlert> list = mapAll(rs);
+                return list.isEmpty() ? null : list.get(0);
+            }
+        }
+    }
+
     /** Validate user credentials. Returns the user's role or null. */
     public String validateLogin(String username, String password) throws SQLException {
         String sql = "SELECT role FROM users WHERE username=? AND password=?";
