@@ -1,0 +1,29 @@
+# Render Blueprint - one-click deploy.
+# Push this file to GitHub, then in the Render dashboard click
+# "New +" -> "Blueprint" and point it at your repo.
+#
+# SQLite needs no environment variables on the free tier - the DB file
+# is created inside the container on first use. The free tier disk is
+# ephemeral, so data resets every redeploy (schema + sample data
+# auto-rebuilds, so the app keeps working).
+#
+# To make data persistent, switch the plan to "starter" or above and
+# uncomment the disk + envVars block below.
+
+services:
+  - type: web
+    name: cyber-alert-analyzer
+    runtime: docker
+    plan: free
+    region: oregon
+    autoDeploy: true
+    healthCheckPath: /login
+
+    # --- Persistent storage (paid plans only) ---------------------
+    # disk:
+    #   name: alerts-data
+    #   mountPath: /var/data
+    #   sizeGB: 1
+    # envVars:
+    #   - key: DB_FILE
+    #     value: /var/data/cyber_alerts.db

@@ -1,0 +1,10 @@
+target/
+out/
+.idea/
+.vscode/
+*.iml
+*.class
+lib/
+.git/
+.gitignore
+README.md
