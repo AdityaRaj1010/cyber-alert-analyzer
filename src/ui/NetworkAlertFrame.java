@@ -36,7 +36,7 @@ public class NetworkAlertFrame extends JFrame {
         super("Network Intrusion Monitor");
         Theme.styleFrame(this);
         buildUI();
-        setSize(960, 600);
+        setSize(1100, 640);
         setLocationRelativeTo(null);
     }
 
@@ -49,20 +49,21 @@ public class NetworkAlertFrame extends JFrame {
         center.setBackground(Theme.BG);
         center.setBorder(new EmptyBorder(14, 16, 14, 16));
 
-        // ---- top row ----
-        JPanel north = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 6));
-        north.setOpaque(false);
+        // ---- Row 1: threshold + Start/Stop ----
+        JPanel topRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 6));
+        topRow.setOpaque(false);
         JLabel l = Theme.body("DDoS req/sec threshold:"); l.setFont(Theme.BODY_BOLD);
-        north.add(l);
+        topRow.add(l);
 
         spnThreshold.setFont(Theme.BODY);
         ((JSpinner.DefaultEditor) spnThreshold.getEditor()).getTextField().setBackground(Theme.SURFACE);
         ((JSpinner.DefaultEditor) spnThreshold.getEditor()).getTextField().setForeground(Theme.TEXT);
-        north.add(spnThreshold);
+        topRow.add(spnThreshold);
 
         JButton btnStart = Theme.primary("Start Monitor");
         JButton btnStop  = Theme.button("Stop", Theme.WARN);
         JButton btnPing  = Theme.danger("Simulate Port Scan");
+        JButton btnDdos  = Theme.danger("Simulate DDoS");
         JButton btnExfil = Theme.danger("Simulate Data Exfiltration");
 
         // ActionListener WITHOUT lambda (anonymous inner class)
@@ -73,13 +74,30 @@ public class NetworkAlertFrame extends JFrame {
         btnStop .addActionListener(e -> stop());
         btnPing .addActionListener(e -> raise("NETWORK_INTRUSION", Severity.CRITICAL,
                 "ALERT: Port scan detected on TCP/22 from external host"));
+        btnDdos .addActionListener(e -> raise("DDOS", Severity.CRITICAL,
+                "ALERT: DDoS-like traffic burst 50000 req/sec on /login"));
         btnExfil.addActionListener(e -> raise("DATA_EXFILTRATION", Severity.CRITICAL,
                 "ALERT: 2.4GB outbound transfer to 203.0.113.99"));
 
-        north.add(btnStart);
-        north.add(btnStop);
-        north.add(btnPing);
-        north.add(btnExfil);
+        topRow.add(btnStart);
+        topRow.add(btnStop);
+
+        // ---- Row 2: simulation buttons ----
+        JPanel simRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 6));
+        simRow.setOpaque(false);
+        simRow.add(btnPing);
+        simRow.add(btnDdos);
+        simRow.add(btnExfil);
+
+        // BoxLayout so each row keeps its full preferred height.
+        JPanel north = new JPanel();
+        north.setLayout(new BoxLayout(north, BoxLayout.Y_AXIS));
+        north.setOpaque(false);
+        topRow.setAlignmentX(LEFT_ALIGNMENT);
+        simRow.setAlignmentX(LEFT_ALIGNMENT);
+        north.add(topRow);
+        north.add(simRow);
+
         center.add(north, BorderLayout.NORTH);
 
         // ---- console ----

@@ -363,7 +363,9 @@ public class SimulateAlertServlet extends HttpServlet {
                 + "  <div class='row'>"
                 + "    <label>Path</label>"
                 + "    <input id='fsPath' type='text' placeholder='C:\\\\users\\\\admin\\\\update.exe' style='flex:1'/>"
-                + "    <button class='btn warn' id='fsBrowse' type='button'>Examples ▼</button>"
+                + "    <input type='file' id='fsFile' style='display:none'/>"
+                + "    <label for='fsFile' class='btn primary' style='cursor:pointer;display:inline-flex;align-items:center;'>📂  Browse File</label>"
+                + "    <button class='btn ghost' id='fsBrowse' type='button'>Examples ▼</button>"
                 + "  </div>"
                 + "  <div class='row'>"
                 + "    <label>Scan Type</label>"
@@ -644,6 +646,7 @@ public class SimulateAlertServlet extends HttpServlet {
       // ----- File Scanner -----
       + "$('#fsBrowse').onclick=()=>$('#fsExamples').style.display=$('#fsExamples').style.display==='none'?'flex':'none';"
       + "$$('#fsExamples a').forEach(a=>a.onclick=()=>{$('#fsPath').value=a.dataset.ex;$('#fsExamples').style.display='none';});"
+      + "$('#fsFile').addEventListener('change',e=>{const f=e.target.files[0];if(f){$('#fsPath').value=f.name;append('[i] Selected file: '+f.name+'  ('+f.size+' bytes)','info');}});"
       + "let fsRunning=false;"
       + "$('#fsScan').onclick=async()=>{"
       + "  if(fsRunning)return;fsRunning=true;$('#fsScan').disabled=true;"

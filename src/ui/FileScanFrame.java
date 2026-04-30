@@ -33,7 +33,7 @@ public class FileScanFrame extends JFrame {
         super("File / Folder Scanner");
         Theme.styleFrame(this);
         buildUI();
-        setSize(900, 620);
+        setSize(1000, 640);
         setLocationRelativeTo(null);
     }
 
@@ -46,17 +46,16 @@ public class FileScanFrame extends JFrame {
         center.setBackground(Theme.BG);
         center.setBorder(new EmptyBorder(14, 16, 14, 16));
 
-        // ----- top controls (path + browse + scan) -----
+        // ----- Row 1: Path + Browse -----
         JPanel pathRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
         pathRow.setOpaque(false);
         JLabel lblPath = Theme.body("Path:"); lblPath.setFont(Theme.BODY_BOLD);
         pathRow.add(lblPath);
         pathRow.add(txtPath);
         JButton btnBrowse = Theme.button("Browse…", Theme.WARN);
-        JButton btnScan   = Theme.primary("Start Scan");
         pathRow.add(btnBrowse);
-        pathRow.add(btnScan);
 
+        // ----- Row 2: Scan options + Start Scan -----
         JPanel optRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 6));
         optRow.setOpaque(false);
         JLabel lScanType = Theme.body("Scan Type:"); lScanType.setFont(Theme.BODY_BOLD);
@@ -69,9 +68,16 @@ public class FileScanFrame extends JFrame {
         chkLog .setOpaque(false); chkLog .setForeground(Theme.TEXT); chkLog .setFont(Theme.BODY_BOLD);
         optRow.add(chkDeep);
         optRow.add(chkLog);
+        JButton btnScan = Theme.primary("Start Scan");
+        optRow.add(btnScan);
 
-        JPanel north = new JPanel(new GridLayout(2, 1));
+        // BoxLayout so each row keeps its full preferred height
+        // (GridLayout was forcing equal rows and clipping the wrapped button).
+        JPanel north = new JPanel();
+        north.setLayout(new BoxLayout(north, BoxLayout.Y_AXIS));
         north.setOpaque(false);
+        pathRow.setAlignmentX(LEFT_ALIGNMENT);
+        optRow .setAlignmentX(LEFT_ALIGNMENT);
         north.add(pathRow);
         north.add(optRow);
 
