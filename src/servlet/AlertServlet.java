@@ -3,6 +3,9 @@ package servlet;
 import dao.AlertDAO;
 import model.SecurityAlert;
 import util.AlertFormatter;
+import util.SecurityAlertComparator;
+import util.SecurityAlertComparator.Direction;
+import util.SecurityAlertComparator.Field;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -36,6 +39,11 @@ public class AlertServlet extends HttpServlet {
 
         boolean onlyCritical = "true".equalsIgnoreCase(req.getParameter("onlyCritical"));
         String  type         = req.getParameter("type");
+
+        // ----- sort params (default = TIME / DESC, newest first) -----
+        Field     sortField = parseField(req.getParameter("sort"));
+        Direction sortDir   = parseDir  (req.getParameter("dir"));
+        SecurityAlertComparator sorter = new SecurityAlertComparator(sortField, sortDir);
 
         resp.setContentType("text/html;charset=UTF-8");
         PrintWriter w = resp.getWriter();
@@ -116,9 +124,16 @@ public class AlertServlet extends HttpServlet {
                 + "<a href='alerts?type=PRIVILEGE_ESCALATION'>Privilege</a>"
                 + "</div>");
 
+        // Build clickable, direction-toggling column headers using the
+        // same custom Comparator the desktop dashboard uses.
         w.println("<table id='alertsTable'><thead><tr>"
-                + "<th>ID</th><th>Time</th><th>Severity</th><th>Type</th>"
-                + "<th>Message</th><th>Source IP</th><th>User</th>"
+                + sortHeader("ID",        Field.ID,       sortField, sortDir, type, onlyCritical)
+                + sortHeader("Time",      Field.TIME,     sortField, sortDir, type, onlyCritical)
+                + sortHeader("Severity",  Field.SEVERITY, sortField, sortDir, type, onlyCritical)
+                + sortHeader("Type",      Field.TYPE,     sortField, sortDir, type, onlyCritical)
+                + sortHeader("Message",   Field.MESSAGE,  sortField, sortDir, type, onlyCritical)
+                + "<th>Source IP</th>"
+                + sortHeader("User",      Field.USER,     sortField, sortDir, type, onlyCritical)
                 + "</tr></thead><tbody>");
 
         try {
@@ -127,6 +142,9 @@ public class AlertServlet extends HttpServlet {
             if (onlyCritical)              data = dao.findCritical();
             else if (type != null && !type.isEmpty()) data = dao.findByType(type);
             else                            data = dao.findAll();
+
+            // ===== custom Comparator applied here =====
+            data.sort(sorter);
 
             for (SecurityAlert a : data) {
                 String detail = AlertFormatter.formatDetail(a);
@@ -177,5 +195,43 @@ public class AlertServlet extends HttpServlet {
         if (s == null) return "";
         return s.replace("&","&amp;").replace("\"","&quot;")
                 .replace("<","&lt;").replace(">","&gt;").replace("\n","&#10;");
+    }
+
+    /**
+     * Build a clickable {@code <th>} that links to the same page with the
+     * sort field set. Clicking the *currently active* column flips the
+     * direction; clicking another column resets to ASC for that column.
+     * Active column is shown with an arrow indicator.
+     */
+    private static String sortHeader(String label, Field col,
+                                     Field active, Direction dir,
+                                     String type, boolean onlyCritical) {
+        boolean isActive = (col == active);
+        Direction nextDir;
+        if (isActive) nextDir = (dir == Direction.ASC) ? Direction.DESC : Direction.ASC;
+        else          nextDir = Direction.ASC;
+
+        StringBuilder href = new StringBuilder("alerts?sort=").append(col)
+                                       .append("&dir=").append(nextDir);
+        if (onlyCritical) href.append("&onlyCritical=true");
+        if (type != null && !type.isEmpty()) href.append("&type=").append(type);
+
+        String arrow = isActive ? (dir == Direction.ASC ? " ▲" : " ▼") : "";
+        String style = isActive ? "color:#fff;" : "";
+
+        return "<th><a href='" + href + "' "
+             + "style='color:#22D3EE;text-decoration:none;display:block;" + style + "'>"
+             + label + arrow + "</a></th>";
+    }
+
+    private static Field parseField(String s) {
+        if (s == null || s.isEmpty()) return Field.TIME;
+        try { return Field.valueOf(s.toUpperCase()); }
+        catch (IllegalArgumentException ex) { return Field.TIME; }
+    }
+    private static Direction parseDir(String s) {
+        if (s == null || s.isEmpty()) return Direction.DESC;
+        try { return Direction.valueOf(s.toUpperCase()); }
+        catch (IllegalArgumentException ex) { return Direction.DESC; }
     }
 }

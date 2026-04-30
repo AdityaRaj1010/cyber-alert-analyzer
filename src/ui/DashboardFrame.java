@@ -3,6 +3,9 @@ package ui;
 import dao.AlertDAO;
 import model.SecurityAlert;
 import util.AlertFormatter;
+import util.SecurityAlertComparator;
+import util.SecurityAlertComparator.Direction;
+import util.SecurityAlertComparator.Field;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -38,6 +41,12 @@ public class DashboardFrame extends JFrame {
             "FILE_ACCESS", "PRIVILEGE_ESCALATION", "DATA_EXFILTRATION", "DDOS"
     });
     private final JLabel lblCount = new JLabel(" ");
+
+    // Sorting controls + the custom Comparator instance used by reload().
+    private final JComboBox<Field> cmbSortField = new JComboBox<>(Field.values());
+    private final JButton btnSortDir = Theme.button("↓  DESC", Theme.ACCENT_DARK);
+    private final SecurityAlertComparator sorter =
+            new SecurityAlertComparator(Field.TIME, Direction.DESC);
 
     public DashboardFrame(String username, String role) {
         super("CyberSecurity Alert Analyzer  -  Dashboard");
@@ -158,15 +167,42 @@ public class DashboardFrame extends JFrame {
         south.add(filterLbl);
         south.add(cmbType);
         south.add(chkOnlyCritical);
+
+        // ----- sort controls -----
+        JLabel sep = new JLabel(" │ "); sep.setForeground(Theme.BORDER); sep.setFont(Theme.HEADING);
+        south.add(sep);
+        JLabel sortLbl = Theme.body("Sort by:"); sortLbl.setFont(Theme.BODY_BOLD);
+        cmbSortField.setSelectedItem(Field.TIME);
+        cmbSortField.setFont(Theme.BODY);
+        cmbSortField.setBackground(Theme.SURFACE);
+        cmbSortField.setForeground(Theme.TEXT);
+        south.add(sortLbl);
+        south.add(cmbSortField);
+        south.add(btnSortDir);
+
         south.add(Box.createHorizontalStrut(40));
         south.add(lblCount);
 
-        // ItemListener WITH lambda - JComboBox
+        // ItemListener WITH lambda - filter combo
         cmbType.addItemListener(ev -> {
             if (ev.getStateChange() == java.awt.event.ItemEvent.SELECTED) reload();
         });
-        // ItemListener WITH lambda - JCheckBox
+        // ItemListener WITH lambda - checkbox
         chkOnlyCritical.addItemListener(ev -> reload());
+
+        // ItemListener WITH lambda - sort field combo
+        cmbSortField.addItemListener(ev -> {
+            if (ev.getStateChange() == java.awt.event.ItemEvent.SELECTED) {
+                sorter.setField((Field) cmbSortField.getSelectedItem());
+                reload();
+            }
+        });
+        // ActionListener WITH lambda - direction toggle button
+        btnSortDir.addActionListener(e -> {
+            sorter.toggleDirection();
+            btnSortDir.setText(sorter.getDirection() == Direction.ASC ? "↑  ASC" : "↓  DESC");
+            reload();
+        });
 
         center.add(south, BorderLayout.SOUTH);
 
@@ -188,6 +224,9 @@ public class DashboardFrame extends JFrame {
                     ? dao.findCritical()
                     : dao.findAll();
 
+            // ===== custom Comparator applied here =====
+            data.sort(sorter);
+
             String typeFilter = (String) cmbType.getSelectedItem();
             int shown = 0;
             for (SecurityAlert a : data) {
@@ -199,7 +238,8 @@ public class DashboardFrame extends JFrame {
                 });
                 shown++;
             }
-            lblCount.setText("Showing " + shown + " alert(s)");
+            lblCount.setText("Showing " + shown + " alert(s)  ::  sorted by "
+                    + sorter.getField() + " " + sorter.getDirection());
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this,
                     "Database unreachable: " + ex.getMessage(),
