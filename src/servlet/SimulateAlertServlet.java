@@ -6,6 +6,7 @@ import model.SecurityAlert.Severity;
 import util.AlertFormatter;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -36,6 +37,7 @@ import java.util.Random;
  * No external libraries - vanilla JS + fetch().
  */
 @WebServlet("/simulate")
+@MultipartConfig
 public class SimulateAlertServlet extends HttpServlet {
 
     private static final Random R = new Random();
@@ -630,7 +632,9 @@ public class SimulateAlertServlet extends HttpServlet {
       + "if(location.hash){const t=location.hash.slice(1);if($('#tool-'+t))showTool(t);}"
       // ----- generic action -----
       + "async function call(fd){"
-      + "  try{const r=await fetch('simulate',{method:'POST',body:fd});const d=await r.json();"
+      + "  try{const body=new URLSearchParams(fd).toString();"
+      + "    const r=await fetch('simulate',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body});"
+      + "    const d=await r.json();"
       + "    if(!d.ok){append('[error] '+(d.error||'unknown'),'CRITICAL');return null;}"
       + "    (d.info||[]).forEach(s=>{"
       + "      if(s.startsWith('__BAR__')){const v=parseInt(s.slice(7))||0;updateNetBar(v);return;}"
